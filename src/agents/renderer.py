@@ -277,9 +277,7 @@ class Renderer:
             container.line.width = Pt(2)
             log_agent_info(self.name, f"added debug section border")
         else:
-            # subtle border
-            container.line.color.rgb = RGBColor(220, 220, 220)  # light gray border
-            container.line.width = Pt(0.5)
+            container.line.fill.background()
 
     def _render_text(self, slide, element: Dict, state: PosterState):
         """render text elements with enhanced formatting"""

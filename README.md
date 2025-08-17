@@ -9,7 +9,7 @@ In this work, we propose a new multi-agent framework that is guided by the desig
 ## 🚀 Quick Start
 
 ### System Requirements
-- **Operating System**: Linux or macOS (Windows not supported)
+- **Operating System**: Linux or macOS
 - **Python Version**: 3.11 (required)
 
 ### 1. Environment Setup
@@ -41,7 +41,7 @@ sudo apt install libreoffice
 Create a `.env` file in the project root with your API keys:
 
 ```bash
-OPENAI_API_KEY="your_openai_key"     # Primary
+OPENAI_API_KEY="your_openai_key"
 ANTHROPIC_API_KEY="your_anthropic_key"
 ```
 
@@ -69,6 +69,8 @@ data/
 
 ## 🎯 Usage
 
+### Command-line Interface
+
 Generate your poster with a single command:
 
 ```bash
@@ -89,6 +91,26 @@ python -m src.workflow.pipeline \
 - `--logo`: Your institution/lab logo
 - `--aff_logo`: Affiliation logo (used for color scheme extraction)
 
+### Web Interface
+
+> Developed by: React + TypeScript + Vite
+
+Upload your PDF paper and logos through drag-and-drop, configure models and dimensions, then generate and download your poster files.
+
+```bash
+# install dependencies & start backend
+cd webui && pip install -r requirements.txt && python start_backend.py
+
+# frontend (in new terminal)
+cd webui && ./start_frontend.sh
+
+# Open http://localhost:3000 in browser
+```
+
+![webui](./resource/webui-start.png)
+
+![webui](./resource/webui-finish.png)
+
 ## Output Structure
 
 After successful generation, you'll find your results in the `output/` folder:
@@ -104,7 +126,7 @@ output/
     │   ├── figure-*.png           # individual figures from paper
     │   ├── table-*.png            # individual tables from paper
     │   └── fig_tab_caption_mapping.json  # caption mappings
-    └── content/                   # processing artifacts
+    └── content/                   # multi-agent artifacts
         ├── raw.md                         # raw text extraction
         ├── structured_sections.json      # organized sections
         ├── classified_visuals.json       # categorized visuals
@@ -163,13 +185,11 @@ Our system generates professional academic posters with high visual quality. Her
 
 ![Example 2](./resource/active-geo.png)
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 This codebase is built upon following open-source projects. We express our sincere gratitude to:
 
 - **[LangGraph](https://github.com/langchain-ai/langgraph)**: Multi-agent workflow orchestration framework;
 - **[Marker](https://github.com/datalab-to/marker)**: High-quality PDF parsing library that enables accurate content extraction from research papers in our work.
-
-<!-- ## Quality Evaluation -->
 
 <!-- ## Citation -->

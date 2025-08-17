@@ -72,7 +72,7 @@ class PosterState(TypedDict):
     errors: List[str]
 
 
-def create_state(pdf_path: str, text_model: str = "gpt-4o-latest", vision_model: str = "gpt-4o-latest", width: int = 84, height: int = 42, url: str = "", logo_path: str = "", aff_logo_path: str = "") -> PosterState:
+def create_state(pdf_path: str, text_model: str = "gpt-4.1-2025-04-14", vision_model: str = "gpt-4.1-2025-04-14", width: int = 84, height: int = 42, url: str = "", logo_path: str = "", aff_logo_path: str = "") -> PosterState:
     """create initial poster state"""
     from pathlib import Path
     
@@ -119,9 +119,8 @@ def _get_model_config(model_id: str) -> ModelConfig:
         "claude": ModelConfig("claude-sonnet-4-20250514", "anthropic"),
         "claude-sonnet-4-20250514": ModelConfig("claude-sonnet-4-20250514", "anthropic"),
         "gemini": ModelConfig("gemini-2.5-pro", "google"),
-        "gpt-4o-latest": ModelConfig("gpt-4o-latest", "openai"),
         "gpt-4o-2024-08-06": ModelConfig("gpt-4o-2024-08-06", "openai"),
         "gpt-4.1-2025-04-14": ModelConfig("gpt-4.1-2025-04-14", "openai"),
         "gpt-4.1-mini-2025-04-14": ModelConfig("gpt-4.1-mini-2025-04-14", "openai")
     }
-    return configs.get(model_id, configs["gpt-4o-latest"]) 
+    return configs.get(model_id, configs["gpt-4.1-2025-04-14"]) 
