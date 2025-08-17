@@ -208,7 +208,7 @@ __marimo__/
 
 # PosterGen specific
 .DS_Store
-*.sh
+run_*.sh
 marker/
 samples/
 docs/
