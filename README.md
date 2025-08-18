@@ -193,3 +193,7 @@ This codebase is built upon following open-source projects. We express our since
 - **[Marker](https://github.com/datalab-to/marker)**: High-quality PDF parsing library that enables accurate content extraction from research papers in our work.
 
 <!-- ## Citation -->
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Y-Research-SBU/PosterGen&type=Date)](https://www.star-history.com/#Y-Research-SBU/PosterGen&Date)
