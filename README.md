@@ -8,20 +8,20 @@
   <br>
   
   <p>
-    <a href="https://hadlay-zhang.github.io">Zhilin Zhang</a><sup>1 ★</sup>&nbsp;
-    <a href="https://wyattz23.github.io">Xiang Zhang</a><sup>2 ★</sup>&nbsp;
-    <a href="https://upup-wei.github.io/">Jiaqi Wei</a><sup>3</sup>&nbsp;
-    <a href="https://Y-Research-SBU.github.io/PosterGen">Yiwei Xu</a><sup>4</sup>&nbsp;
-    <a href="https://chenyuyou.me/">Chenyu You</a><sup>5</sup>
+    <a href="https://hadlay-zhang.github.io">Zhilin Zhang</a><sup>1,2 ★</sup>&nbsp;
+    <a href="https://wyattz23.github.io">Xiang Zhang</a><sup>3 ★</sup>&nbsp;
+    <a href="https://upup-wei.github.io/">Jiaqi Wei</a><sup>4</sup>&nbsp;
+    <a href="https://Y-Research-SBU.github.io/PosterGen">Yiwei Xu</a><sup>5</sup>&nbsp;
+    <a href="https://chenyuyou.me/">Chenyu You</a><sup>1</sup>
   </p>
 
   <p>
-    <sup>1</sup> New York University &nbsp;&nbsp; 
-    <sup>2</sup> University of British Columbia &nbsp;&nbsp; 
-    <sup>3</sup> Zhejiang University &nbsp;&nbsp; 
-    <sup>4</sup> University of California, Los Angeles &nbsp;&nbsp; 
-    <sup>5</sup> Stony Brook University &nbsp;&nbsp;  <br>
-    ★ Equal Contribution
+    <sup>1</sup> Stony Brook University &nbsp;&nbsp; 
+    <sup>2</sup> New York University &nbsp;&nbsp;
+    <sup>3</sup> University of British Columbia &nbsp;&nbsp; <br>
+    <sup>4</sup> Zhejiang University &nbsp;&nbsp; 
+    <sup>5</sup> University of California, Los Angeles &nbsp;&nbsp; 
+    ★ Equal Contribution <br>
   </p>
 
 <p align="center">
