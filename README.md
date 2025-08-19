@@ -1,20 +1,45 @@
+<div align="center">
+  
+  <img src="./resource/logo.png" height="100" style="object-fit: contain;">
+
+  <h2>PosterGen: A Multi-Agent Framework for <em>Aesthetic-Aware</em> Paper-to-Poster Generation</h2>
+  <!-- <h4>🌟 🌟</h4> -->
+  
+  <br>
+  
+  <p>
+    <a href="https://hadlay-zhang.github.io">Zhilin Zhang</a><sup>1 ★</sup>&nbsp;
+    <a href="https://wyattz23.github.io">Xiang Zhang</a><sup>2 ★</sup>&nbsp;
+    <a href="https://upup-wei.github.io/">Jiaqi Wei</a><sup>3</sup>&nbsp;
+    <a href="https://Y-Research-SBU.github.io/PosterGen">Yiwei Xu</a><sup>4</sup>&nbsp;
+    <a href="https://chenyuyou.me/">Chenyu You</a><sup>5</sup>
+  </p>
+
+  <p>
+    <sup>1</sup> New York University &nbsp;&nbsp; 
+    <sup>2</sup> University of British Columbia &nbsp;&nbsp; 
+    <sup>3</sup> Zhejiang University &nbsp;&nbsp; 
+    <sup>4</sup> University of California, Los Angeles &nbsp;&nbsp; 
+    <sup>5</sup> Stony Brook University &nbsp;&nbsp;  <br>
+    ★ Equal Contribution
+  </p>
+
 <p align="center">
-    <img src="./resource/logo.png" height="100" style="object-fit: contain;">
+  <a href="https://Y-Research-SBU.github.io/PosterGen">
+    <img src="https://img.shields.io/badge/💡%20Paper-2XXX.XXXXX-blue?style=flat-square" alt="Paper">
+  </a>
+  <a href="https://Y-Research-SBU.github.io/PosterGen">
+    <img src="https://img.shields.io/badge/Project-Website-green?style=flat-square&logo=googlechrome" alt="Project Website">
+  </a>
+  <a href="https://Y-Research-SBU.github.io/PosterGen">
+    <img src="https://img.shields.io/badge/Hugging%20Face-Demo-yellow?style=flat-square&logo=huggingface" alt="Hugging Face Demo">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/LangGraph-0.4.8-EE4C2C?style=flat-square&logo=langgraph" alt="LangGraph 0.4.8">
+  </a>
 </p>
 
-# A Multi-Agent Framework for Aesthetic-Aware Paper-to-Poster Generation
-
-<p align="center">
-  <a href="https://hadlay-zhang.github.io/PosterGen/" target="_blank"><img src="https://img.shields.io/badge/Paper-2XXX.XXXXX-264653"></a>
-  <a href="https://hadlay-zhang.github.io/PosterGen/" target="_blank"><img src="https://img.shields.io/badge/Project-Website-2a9d8f"></a>
-  <a href="https://hadlay-zhang.github.io/PosterGen/" target="_blank"><img src="https://img.shields.io/badge/Hugging Face-Demo-e9c46a"></a>
-  <a href="https://github.com/Y-Research-SBU/PosterGen" target="_blank"><img src="https://img.shields.io/badge/Github-Code-f4a261"></a>
-  <!-- <a href="https://hadlay-zhang.github.io/PosterGen/" target="_blank"><img src="https://img.shields.io/badge/Project-Website-e76f51"></a> -->
-</p>
-
-> PosterGen: A Multi-Agent Framework for *Aesthetic-Aware* Paper-to-Poster Generation\
-> \
-> [Zhilin Zhang](https://hadlay-zhang.github.io), [Xiang Zhang](https://wyattz23.github.io), [Jiaqi Wei](https://upup-wei.github.io), [Yiwei Xu](https://hadlay-zhang.github.io/PosterGen), [Chenyu You](https://chenyuyou.me)
+</div>
 
 ![](./resource/method.png)
 
@@ -24,7 +49,7 @@ In this work, we propose a new multi-agent framework that is guided by the desig
 
 ### System Requirements
 - **Operating System**: Linux or macOS
-- **Python Version**: 3.11 (required)
+- **Python Version**: 3.11
 
 ### 1. Environment Setup
 
