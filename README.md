@@ -1,6 +1,20 @@
-# PosterGen: A Multi-Agent Framework for Aesthetic-Aware Paper-to-Poster Generation
+<p align="center">
+    <img src="./resource/logo.png" height="100" style="object-fit: contain;">
+</p>
 
-> Zhilin Zhang, Xiang Zhang, Jiaqi Wei, Yiwei Xu, Chenyu You 
+# A Multi-Agent Framework for Aesthetic-Aware Paper-to-Poster Generation
+
+<p align="center">
+  <a href="https://hadlay-zhang.github.io/PosterGen/" target="_blank"><img src="https://img.shields.io/badge/Paper-2XXX.XXXXX-264653"></a>
+  <a href="https://hadlay-zhang.github.io/PosterGen/" target="_blank"><img src="https://img.shields.io/badge/Project-Website-2a9d8f"></a>
+  <a href="https://hadlay-zhang.github.io/PosterGen/" target="_blank"><img src="https://img.shields.io/badge/Hugging Face-Demo-e9c46a"></a>
+  <a href="https://github.com/Y-Research-SBU/PosterGen" target="_blank"><img src="https://img.shields.io/badge/Github-Code-f4a261"></a>
+  <!-- <a href="https://hadlay-zhang.github.io/PosterGen/" target="_blank"><img src="https://img.shields.io/badge/Project-Website-e76f51"></a> -->
+</p>
+
+> PosterGen: A Multi-Agent Framework for *Aesthetic-Aware* Paper-to-Poster Generation\
+> \
+> [Zhilin Zhang](https://hadlay-zhang.github.io), [Xiang Zhang](https://wyattz23.github.io), [Jiaqi Wei](https://upup-wei.github.io), [Yiwei Xu](https://hadlay-zhang.github.io/PosterGen), [Chenyu You](https://chenyuyou.me)
 
 ![](./resource/method.png)
 
@@ -189,8 +203,8 @@ Our system generates professional academic posters with high visual quality. Her
 
 This codebase is built upon following open-source projects. We express our sincere gratitude to:
 
-- **[LangGraph](https://github.com/langchain-ai/langgraph)**: Multi-agent workflow orchestration framework;
-- **[Marker](https://github.com/datalab-to/marker)**: High-quality PDF parsing library that enables accurate content extraction from research papers in our work.
+- **[LangGraph](https://github.com/langchain-ai/langgraph)**: Multi-agent workflow framework;
+- **[Marker](https://github.com/datalab-to/marker)**: High-quality PDF parsing library that enables accurate content extraction from research papers.
 
 <!-- ## Citation -->
 
