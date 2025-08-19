@@ -21,7 +21,7 @@
     <sup>3</sup> University of British Columbia &nbsp;&nbsp; <br>
     <sup>4</sup> Zhejiang University &nbsp;&nbsp; 
     <sup>5</sup> University of California, Los Angeles &nbsp;&nbsp; 
-    ★ Equal Contribution <br>
+    <sup>★</sup> Equal Contribution <br>
   </p>
 
 <p align="center">
