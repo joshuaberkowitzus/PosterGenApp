@@ -137,13 +137,15 @@ python -m src.workflow.pipeline \
 Upload your PDF paper and logos through drag-and-drop, configure models and dimensions, then generate and download your poster files.
 
 ```bash
+# Please make sure the API keys are configured in `.env`
+
 # install dependencies & start backend
 cd webui && pip install -r requirements.txt && python start_backend.py
 
 # frontend (in new terminal)
 cd webui && ./start_frontend.sh
 
-# Open http://localhost:3000 in browser
+# Open http://localhost:3000 in your browser
 ```
 
 ![webui](./resource/webui-start.png)

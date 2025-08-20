@@ -3,6 +3,7 @@ import { FileUpload } from './components/FileUpload';
 import { ProgressBar } from './components/ProgressBar';
 import { apiService } from './api';
 import { PosterConfig, UploadedFiles, JobStatus } from './types';
+import postergenLogo from './postergen-logo.png';
 
 function App() {
   const [availableModels, setAvailableModels] = useState<string[]>([]);
@@ -155,7 +156,7 @@ function App() {
   return (
     <div className="container">
       <div className="header">
-        <h1>PosterGen WebUI</h1>
+        <h1 style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src={postergenLogo} alt="PosterGen Logo" style={{height: '1.5em', marginRight: '0.5em'}} />PosterGen WebUI</h1>
         <p>🎨 Generate design-aware academic posters from PDF papers</p>
       </div>
 
