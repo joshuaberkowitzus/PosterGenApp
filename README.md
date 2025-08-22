@@ -132,14 +132,20 @@ python -m src.workflow.pipeline \
 
 Upload your PDF paper and logos through drag-and-drop, configure models and dimensions, then generate and download your poster files.
 
-```bash
-# Please make sure the API keys are configured in `.env`
+**Prerequisites:**
+- Node.js installed
+- Main PosterGen dependencies installed (`pip install -r requirements.txt` from project root)
+- API keys configured in `.env` file
 
-# install dependencies & start backend
+```bash
+# Install main project dependencies (if not done already)
+pip install -r requirements.txt
+
+# Start backend
 cd webui && pip install -r requirements.txt && python start_backend.py
 
-# frontend (in new terminal)
-cd webui && ./start_frontend.sh
+# Start frontend (in new terminal, from project root)
+cd webui && sh ./start_frontend.sh
 
 # Open http://localhost:3000 in your browser
 ```
