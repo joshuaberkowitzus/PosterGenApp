@@ -163,5 +163,5 @@ def extract_json(response: str) -> Dict[str, Any]:
 
 def load_prompt(path: str) -> str:
     """load prompt template from file"""
-    with open(path, 'r') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         return f.read() 
