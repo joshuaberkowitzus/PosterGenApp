@@ -59,10 +59,6 @@ conda create -n poster python=3.11 -y
 conda activate poster
 pip install -r requirements.txt
 cd PosterGen
-
-# Install marker for PDF parser
-git clone https://github.com/Hadlay-Zhang/marker
-cd marker && pip install -e . && cd ../
 ```
 
 ### 2. Install LibreOffice (Required for PPTX generation)
