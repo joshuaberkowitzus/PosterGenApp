@@ -315,15 +315,15 @@ class FontAgent:
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # styled layout
-        with open(output_dir / "styled_layout.json", "w") as f:
+        with open(output_dir / "styled_layout.json", "w", encoding='utf-8') as f:
             json.dump(state.get("styled_layout", []), f, indent=2)
         
         # keywords
-        with open(output_dir / "keywords.json", "w") as f:
+        with open(output_dir / "keywords.json", "w", encoding='utf-8') as f:
             json.dump(state.get("keywords", {}), f, indent=2)
         
         # styling interfaces
-        with open(output_dir / "styling_interfaces.json", "w") as f:
+        with open(output_dir / "styling_interfaces.json", "w", encoding='utf-8') as f:
             json.dump(self.get_styling_interfaces(), f, indent=2)
 
 

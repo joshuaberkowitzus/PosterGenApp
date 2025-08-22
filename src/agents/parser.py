@@ -144,11 +144,11 @@ class Parser:
         raise ValueError("failed to generate enhanced narrative after 3 attempts")
     
     def _save_content(self, content: Dict, filename: str, content_dir: Path):
-        with open(content_dir / filename, 'w') as f:
+        with open(content_dir / filename, 'w', encoding='utf-8') as f:
             json.dump(content, f, indent=2)
     
     def _save_raw_text(self, raw_text: str, content_dir: Path):
-        with open(content_dir / "raw.md", 'w') as f:
+        with open(content_dir / "raw.md", 'w', encoding='utf-8') as f:
             f.write(raw_text)
     
     def _extract_assets(self, result, name: str, assets_dir: Path) -> Tuple[Dict, Dict]:
@@ -191,9 +191,9 @@ class Parser:
                     'aspect': pil_image.width / pil_image.height if pil_image.height > 0 else 1,
                 }
         
-        with open(assets_dir / "figures.json", 'w') as f:
+        with open(assets_dir / "figures.json", 'w', encoding='utf-8') as f:
             json.dump(figures, f, indent=2)
-        with open(assets_dir / "tables.json", 'w') as f:
+        with open(assets_dir / "tables.json", 'w', encoding='utf-8') as f:
             json.dump(tables, f, indent=2)
         with open(assets_dir / "fig_tab_caption_mapping.json", 'w', encoding='utf-8') as f:
             json.dump(caption_map, f, indent=2, ensure_ascii=False)

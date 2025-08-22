@@ -334,7 +334,7 @@ class ColorAgent:
         """save color scheme to json file"""
         output_dir = Path(state["output_dir"]) / "content"
         output_dir.mkdir(parents=True, exist_ok=True)
-        with open(output_dir / "color_scheme.json", "w") as f:
+        with open(output_dir / "color_scheme.json", "w", encoding='utf-8') as f:
             json.dump(state.get("color_scheme", {}), f, indent=2)
 
 

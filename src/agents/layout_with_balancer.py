@@ -66,10 +66,10 @@ class LayoutWithBalancerAgent:
         output_dir = Path(state["output_dir"]) / "content"
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        with open(output_dir / "optimized_story_board.json", "w") as f:
+        with open(output_dir / "optimized_story_board.json", "w", encoding='utf-8') as f:
             json.dump(balancer_result["optimized_story_board"], f, indent=2)
         
-        with open(output_dir / "balancer_decisions.json", "w") as f:
+        with open(output_dir / "balancer_decisions.json", "w", encoding='utf-8') as f:
             json.dump(balancer_result["balancer_decisions"], f, indent=2)
 
 

@@ -117,7 +117,7 @@ class SectionTitleDesigner:
         """Save title design to json file"""
         output_dir = Path(state["output_dir"]) / "content"
         output_dir.mkdir(parents=True, exist_ok=True)
-        with open(output_dir / "section_title_design.json", "w") as f:
+        with open(output_dir / "section_title_design.json", "w", encoding='utf-8') as f:
             json.dump(state.get("section_title_design", {}), f, indent=2)
 
 

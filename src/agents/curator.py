@@ -425,7 +425,7 @@ class StoryBoardCurator:
         """save story board to json file"""
         output_dir = Path(state["output_dir"]) / "content"
         output_dir.mkdir(parents=True, exist_ok=True)
-        with open(output_dir / "story_board.json", "w") as f:
+        with open(output_dir / "story_board.json", "w", encoding='utf-8') as f:
             json.dump(state.get("story_board", {}), f, indent=2)
 
 

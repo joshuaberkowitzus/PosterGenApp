@@ -174,10 +174,10 @@ class LayoutAgent:
         output_dir = Path(state["output_dir"]) / "content"
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        with open(output_dir / "initial_layout_data.json", "w") as f:
+        with open(output_dir / "initial_layout_data.json", "w", encoding='utf-8') as f:
             json.dump(state.get("initial_layout_data", []), f, indent=2)
         
-        with open(output_dir / "column_analysis.json", "w") as f:
+        with open(output_dir / "column_analysis.json", "w", encoding='utf-8') as f:
             json.dump(state.get("column_analysis", {}), f, indent=2)
     
     def _save_final_layout(self, state: PosterState):
@@ -185,15 +185,15 @@ class LayoutAgent:
         output_dir = Path(state["output_dir"]) / "content"
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        with open(output_dir / "final_design_layout.json", "w") as f:
+        with open(output_dir / "final_design_layout.json", "w", encoding='utf-8') as f:
             json.dump(state.get("design_layout", []), f, indent=2)
         
-        with open(output_dir / "optimized_layout.json", "w") as f:
+        with open(output_dir / "optimized_layout.json", "w", encoding='utf-8') as f:
             json.dump(state.get("optimized_column_assignment", {}), f, indent=2)
         
         # save final column analysis to show optimization success
         if state.get("final_column_analysis"):
-            with open(output_dir / "final_column_analysis.json", "w") as f:
+            with open(output_dir / "final_column_analysis.json", "w", encoding='utf-8') as f:
                 json.dump(state.get("final_column_analysis", {}), f, indent=2)
     
     def _generate_column_analysis(self, layout_data: List[Dict], state: PosterState) -> Dict:
