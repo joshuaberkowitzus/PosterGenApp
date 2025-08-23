@@ -6,7 +6,21 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import MSO_AUTO_SIZE, PP_ALIGN
 from typing import Dict, Any, List
+from pathlib import Path
 from src.config.poster_config import load_config
+
+def get_font_file_path(font_name: str) -> str:
+    font_mapping = {
+        "Arial": "fonts/Arial.ttf",
+        "Helvetica Neue": "fonts/HelveticaNeue.ttf",
+    }
+    
+    font_file = font_mapping.get(font_name, "fonts/Arial.ttf")
+    project_root = Path(__file__).parent.parent.parent
+    font_path = project_root / font_file
+    
+    return str(font_path)
+
 def measure_text_height(text_content: str, width_inches: float, font_name: str = "Arial", 
                        font_size: int = 44, line_spacing: float = 1.0, precision: float = 0.001) -> Dict[str, Any]:
     """find minimum height for text to fit without font size reduction"""
@@ -70,9 +84,10 @@ def measure_text_height(text_content: str, width_inches: float, font_name: str =
         font_reduced = False
         
         try:
-            text_frame.fit_text(font_family=font_name, max_size=font_size)
+            # Use direct font file to bypass cross-platform discovery bug
+            font_file_path = get_font_file_path(font_name)
+            text_frame.fit_text(font_file=font_file_path, max_size=font_size)
             
-            # check ALL runs in ALL paragraphs for font size reduction
             for paragraph in text_frame.paragraphs:
                 for run in paragraph.runs:
                     if run.font.size and run.font.size.pt < (original_size - 0.5):
@@ -80,7 +95,8 @@ def measure_text_height(text_content: str, width_inches: float, font_name: str =
                         break
                 if font_reduced:
                     break
-        except:
+        except Exception as e:
+            print(f"fit_text error: {e}")
             font_reduced = True
         
         if font_reduced:
