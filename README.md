@@ -2,7 +2,7 @@
   
   <img src="./resource/logo.png" height="100" style="object-fit: contain;">
 
-  <h2>PosterGen: A Multi-Agent Framework for <em>Aesthetic-Aware</em> Paper-to-Poster Generation</h2>
+  <h2>PosterGen: A LLM Multi-Agent System for Aesthetic-Aware Paper-to-Poster Generation</h2>
   <!-- <h4>🌟 🌟</h4> -->
   
   <br>
@@ -31,7 +31,7 @@
   <a href="https://Y-Research-SBU.github.io/PosterGen">
     <img src="https://img.shields.io/badge/Project-Website-green?style=flat-square&logo=googlechrome" alt="Project Website">
   </a>
-  <a href="https://Y-Research-SBU.github.io/PosterGen">
+  <a href="https://huggingface.co/spaces/Y-Research-Group/PosterGen">
     <img src="https://img.shields.io/badge/Hugging%20Face-Demo-yellow?style=flat-square&logo=huggingface" alt="Hugging Face Demo">
   </a>
   <a href="#">
