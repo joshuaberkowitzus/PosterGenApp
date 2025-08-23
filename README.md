@@ -26,7 +26,7 @@
 
 <p align="center">
   <a href="https://Y-Research-SBU.github.io/PosterGen">
-    <img src="https://img.shields.io/badge/💡%20Paper-2XXX.XXXXX-blue?style=flat-square" alt="Paper">
+    <img src="https://img.shields.io/badge/💡%20Paper-arXiv-blue?style=flat-square" alt="Paper">
   </a>
   <a href="https://Y-Research-SBU.github.io/PosterGen">
     <img src="https://img.shields.io/badge/Project-Website-green?style=flat-square&logo=googlechrome" alt="Project Website">
@@ -48,7 +48,7 @@ In this work, we propose a new multi-agent framework that is guided by the desig
 ## 🚀 Quick Start
 
 ### System Requirements
-- **Operating System**: Linux or macOS
+- **Operating System**: Windows, Linux, or macOS
 - **Python Version**: 3.11
 
 ### 1. Environment Setup
@@ -61,14 +61,24 @@ pip install -r requirements.txt
 cd PosterGen
 ```
 
-### 2. Install LibreOffice (Required for PPTX generation)
+### 2. Install LibreOffice
 
+**Windows:**
+1. Download and install LibreOffice from [official website](https://www.libreoffice.org/download/download/)
+2. Add LibreOffice to your system PATH:
+   - Default installation: Add `C:\Program Files\LibreOffice\program` to PATH
+   - Or custom installation: Add `<your_install_path>\LibreOffice\program` to PATH
+
+**macOS:**
 ```bash
-# macOS
 brew install --cask libreoffice
+```
 
-# Ubuntu/Linux
+**Ubuntu/Linux:**
+```bash
 sudo apt install libreoffice
+# Or using snap:
+sudo snap install libreoffice
 ```
 
 ### 3. API Keys Configuration
@@ -219,6 +229,9 @@ The system supports customization through `config/poster_config.yaml`. You can a
 - Color generation algorithms
 - Visual asset sizing constraints
 - Content optimization thresholds
+
+**Custom Fonts:**
+If you would like to use other fonts, you can add the font files under `fonts/`, modify the `get_font_file_path()` mapping in `src/layout/text_height_measurement.py`, and adjust the 'typography' in `config/poster_config.yaml`.
 
 ## 📊 Example Results
 

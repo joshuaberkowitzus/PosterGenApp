@@ -683,13 +683,38 @@ class Renderer:
             import subprocess
             output_dir = pptx_path.parent
             
-            # try different libreoffice paths
-            libreoffice_paths = [
-                "/Applications/LibreOffice.app/Contents/MacOS/soffice",
-                "/usr/local/bin/libreoffice", 
-                "libreoffice",
-                "soffice"
-            ]
+            import platform
+            system = platform.system().lower()
+            
+            if system == "windows":
+                libreoffice_paths = [
+                    r"C:\Program Files\LibreOffice\program\soffice.exe",
+                    r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+                    r"C:\Users\%USERNAME%\AppData\Local\Programs\LibreOffice\program\soffice.exe",
+                    "soffice.exe",
+                    "libreoffice.exe"
+                ]
+            elif system == "linux":
+                libreoffice_paths = [
+                    "/usr/bin/libreoffice",
+                    "/usr/local/bin/libreoffice",
+                    "/snap/bin/libreoffice",
+                    "/usr/bin/soffice",
+                    "libreoffice",
+                    "soffice"
+                ]
+            elif system == "darwin":  # macOS
+                libreoffice_paths = [
+                    "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+                    "/usr/local/bin/libreoffice",
+                    "libreoffice",
+                    "soffice"
+                ]
+            else:
+                libreoffice_paths = [
+                    "libreoffice",
+                    "soffice"
+                ]
             
             for lo_path in libreoffice_paths:
                 try:
