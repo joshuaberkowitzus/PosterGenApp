@@ -45,6 +45,10 @@
 
 In this work, we propose a new multi-agent framework that is guided by the design principles. Our multi-agent system adopts a workflow of specialist agents that mirrors a professional design process. It begins with a **Parser Agent** that extracts and structures all content from the source paper. Following this, the **Curator Agent** designs a narrative-based storyboard, which the **Layout Agent** then transforms into a spatially balanced, three-column layout. The **Styling Agents** subsequently apply a harmonious color palette and a hierarchical typographic system to ensure aesthetic coherence. This methodology is designed to generate a well-designed poster that minimizes the need for manual fine-tuning.
 
+## 📢 News
+
+- **2025.08.23** Code Released. PosterGen now available! 🎉
+
 ## 🚀 Quick Start
 
 ### System Requirements
