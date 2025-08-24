@@ -2,7 +2,7 @@
   
   <img src="./resource/logo.png" height="100" style="object-fit: contain;">
 
-  <h2>PosterGen: Aesthetic-Aware Paper-to-Poster Generation via Multi-Agent LLMs</h2>
+  <h2>PosterGen: Aesthetic-Aware Paper-to-Poster Generation via <br> Multi-Agent LLMs</h2>
   <!-- <h4>🌟 🌟</h4> -->
   
   <br>
