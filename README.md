@@ -41,8 +41,6 @@
 
 </div>
 
-![](./resource/method.png)
-
 ## Abstract
 
 > In this work, we propose a new multi-agent LLMs framework that is guided by design principles.  
@@ -54,6 +52,8 @@
 > - **Styling Agents** – apply a harmonious color palette and a hierarchical typographic system to ensure aesthetic coherence.  
 >
 > This methodology is designed to generate a well-designed poster that minimizes the need for manual fine-tuning.
+
+![](./resource/method.png)
 
 ## 📢 News
 
