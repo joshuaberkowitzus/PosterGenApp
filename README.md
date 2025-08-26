@@ -25,17 +25,24 @@
   </p>
 
 <p align="center">
-  <a href="https://Y-Research-SBU.github.io/PosterGen">
-    <img src="https://img.shields.io/badge/💡%20Paper-arXiv-blue?style=flat-square" alt="Paper">
+  <a href="https://arxiv.org/abs/2508.17188">
+    <img src="https://img.shields.io/badge/💡%20ArXiv-2508.17188-blue?style=flat-square" alt="Paper">
   </a>
   <a href="https://Y-Research-SBU.github.io/PosterGen">
-    <img src="https://img.shields.io/badge/Project-Website-green?style=flat-square&logo=googlechrome" alt="Project Website">
+    <img src="https://img.shields.io/badge/Project-Website-4285F4?style=flat-square&logo=googlechrome" alt="Project Website">
   </a>
   <a href="https://huggingface.co/spaces/Y-Research-Group/PosterGen">
     <img src="https://img.shields.io/badge/Hugging%20Face-Demo-yellow?style=flat-square&logo=huggingface" alt="Hugging Face Demo">
   </a>
   <a href="#">
     <img src="https://img.shields.io/badge/LangGraph-0.4.8-EE4C2C?style=flat-square&logo=langgraph" alt="LangGraph 0.4.8">
+  </a>
+  <br>
+  <a href="https://discord.gg/5K8cPpWP">
+    <img src="https://img.shields.io/badge/Discord-Community-5865F2?style=flat-square&logo=discord" alt="Discord Community">
+  </a>
+  <a href="https://github.com/Y-Research-SBU/PosterGen/issues/1">
+    <img src="https://img.shields.io/badge/WeChat-Group-green?style=flat-square&logo=wechat" alt="WeChat Group">
   </a>
 </p>
 
