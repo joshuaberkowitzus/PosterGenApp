@@ -114,6 +114,14 @@ OPENAI_API_KEY="your_openai_key"
 ANTHROPIC_API_KEY="your_anthropic_key"
 ```
 
+To use a compatible API service or a custom deployment, set the base URL in your `.env` file:
+
+```bash
+OPENAI_BASE_URL="https://your-api-endpoint.com/v1"
+ANTHROPIC_BASE_URL="https://your-anthropic-endpoint.com"
+GOOGLE_BASE_URL="https://your-google-endpoint.com"
+```
+
 ## Data Structure Setup
 
 Before running the multi-agent pipeline, organize your files in the `data/` folder:

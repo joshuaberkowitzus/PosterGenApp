@@ -21,26 +21,41 @@ load_dotenv()
 def create_model(config: ModelConfig):
     """create chat model from config"""
     if config.provider == 'openai':
-        return ChatOpenAI(
-            model_name=config.model_name,
-            temperature=config.temperature,
-            max_tokens=config.max_tokens,
-            api_key=os.getenv('OPENAI_API_KEY')
-        )
+        openai_kwargs = {
+            'model_name': config.model_name,
+            'temperature': config.temperature,
+            'max_tokens': config.max_tokens,
+            'api_key': os.getenv('OPENAI_API_KEY')
+        }
+        base_url = os.getenv('OPENAI_BASE_URL')
+        if base_url:
+            openai_kwargs['base_url'] = base_url
+            
+        return ChatOpenAI(**openai_kwargs)
     elif config.provider == 'anthropic':
-        return ChatAnthropic(
-            model=config.model_name,
-            temperature=config.temperature,
-            max_tokens=config.max_tokens,
-            api_key=os.getenv('ANTHROPIC_API_KEY')
-        )
+        anthropic_kwargs = {
+            'model': config.model_name,
+            'temperature': config.temperature,
+            'max_tokens': config.max_tokens,
+            'api_key': os.getenv('ANTHROPIC_API_KEY')
+        }
+        base_url = os.getenv('ANTHROPIC_BASE_URL')
+        if base_url:
+            anthropic_kwargs['base_url'] = base_url
+            
+        return ChatAnthropic(**anthropic_kwargs)
     elif config.provider == 'google':
-        return ChatGoogleGenerativeAI(
-            model=config.model_name,
-            temperature=config.temperature,
-            max_output_tokens=config.max_tokens,
-            google_api_key=os.getenv('GOOGLE_API_KEY')
-        )
+        google_kwargs = {
+            'model': config.model_name,
+            'temperature': config.temperature,
+            'max_output_tokens': config.max_tokens,
+            'google_api_key': os.getenv('GOOGLE_API_KEY')
+        }
+        base_url = os.getenv('GOOGLE_BASE_URL')
+        if base_url:
+            google_kwargs['base_url'] = base_url
+            
+        return ChatGoogleGenerativeAI(**google_kwargs)
     else:
         raise ValueError(f"unsupported provider: {config.provider}")
 
