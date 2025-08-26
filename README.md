@@ -29,7 +29,7 @@
     <img src="https://img.shields.io/badge/ArXiv-2508.17188-red?style=flat-square&logo=arxiv" alt="Paper">
   </a>
   <a href="https://Y-Research-SBU.github.io/PosterGen">
-    <img src="https://img.shields.io/badge/Project-Website-ff69b4?style=flat-square&logo=googlechrome" alt="Project Website">
+    <img src="https://img.shields.io/badge/Project-Website-blue?style=flat-square&logo=googlechrome" alt="Project Website">
   </a>
   <a href="https://huggingface.co/spaces/Y-Research-Group/PosterGen">
     <img src="https://img.shields.io/badge/Hugging%20Face-Demo-yellow?style=flat-square&logo=huggingface" alt="Hugging Face Demo">
