@@ -64,6 +64,7 @@
 
 ## 📢 News
 
+- **2025.08.26** Our paper is now available on [arXiv](https://arxiv.org/abs/2508.17188)! 📄
 - **2025.08.23** Code Released. PosterGen now available! 🎉
 
 ## 🚀 Quick Start
@@ -79,6 +80,8 @@
 conda create -n poster python=3.11 -y
 conda activate poster
 pip install -r requirements.txt
+
+git clone -b main https://github.com/Y-Research-SBU/PosterGen.git
 cd PosterGen
 ```
 
