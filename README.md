@@ -165,7 +165,7 @@ python -m src.workflow.pipeline \
 - `--paper_path`: Path to your PDF paper
 - `--text_model`: LLM for text processing (options: "gpt-4.1-2025-04-14" (default), "gpt-4o-2024-08-06", "gpt-4.1-mini-2025-04-14", "claude-sonnet-4-20250514")
 - `--vision_model`: Vision model for analysis (same options as text_model)
-- `--logo`: Your institution/lab logo
+- `--logo`: Conference logo
 - `--aff_logo`: Affiliation logo (used for color scheme extraction)
 
 ### Web Interface
