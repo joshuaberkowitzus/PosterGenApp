@@ -65,7 +65,7 @@
 ## 📢 News
 
 - **2025.08.26** Our paper is now available on [arXiv](https://arxiv.org/abs/2508.17188)! 📄
-- **2025.08.23** Code Released. PosterGen now available! 🎉
+- **2025.08.23** Code Released. PosterGen now available! 🎉🎉
 
 ## 🚀 Quick Start
 
