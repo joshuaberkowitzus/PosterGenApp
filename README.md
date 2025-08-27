@@ -50,7 +50,7 @@
 
 ## Abstract
 
-> In this work, we propose a new multi-agent LLMs framework that is guided by design principles.  
+> In this work, we propose a multi-agent LLMs framework that is guided by design principles.  
 > Our multi-agent LLMs adopt a workflow of specialist agents that mirrors a professional design process:
 >
 > - **Parser Agent** – extracts and structures all content from the source paper.  
