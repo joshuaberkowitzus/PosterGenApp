@@ -289,6 +289,7 @@ This codebase is built upon following open-source projects. We express our since
 
 - **[LangGraph](https://github.com/langchain-ai/langgraph)**: Multi-agent workflow framework;
 - **[Marker](https://github.com/datalab-to/marker)**: High-quality PDF parsing library that enables accurate content extraction from research papers.
+- **[python-pptx](https://github.com/scanny/python-pptx)**: Python library for creating PowerPoint (.PPTX) poster files.
 
 ## Star History
 
