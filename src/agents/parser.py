@@ -132,7 +132,6 @@ class Parser:
                 response = agent.step(prompt)
                 
                 narrative = extract_json(response.content)
-                log_agent_info(self.name, f"generated narrative  {narrative}")
                 
                 if "and" in narrative and "but" in narrative and "therefore" in narrative:
                     return narrative, response.input_tokens, response.output_tokens
@@ -277,7 +276,7 @@ class Parser:
 
     def _extract_title_authors(self, text: str, config) -> Tuple[str, str]:
         """extract title and authors via llm api"""
-        log_agent_info(self.name, "extracting title and authors with llm jiangdazhi version")
+        log_agent_info(self.name, "extracting title and authors")
         agent = LangGraphAgent("expert academic paper parser", config)
         
         for attempt in range(3):
@@ -287,8 +286,6 @@ class Parser:
                 response = agent.step(prompt)
                 
                 result = extract_json(response.content)
-
-                print(f"extracted title/authors: {response.content}")
 
                 if "title" in result and "authors" in result:
                     title = result["title"].strip()
@@ -329,7 +326,6 @@ class Parser:
             return {"key_visual": None, "problem_illustration": [], "method_workflow": [], "main_results": [], "comparative_results": [], "supporting": []}, 0, 0
             
         log_agent_info(self.name, f"classifying {len(all_visuals)} visual assets")
-        print(f"classify model config: {config}")
         agent = LangGraphAgent("expert poster designer", config)
         
         for attempt in range(3):
@@ -339,10 +335,8 @@ class Parser:
                 )
                 
                 agent.reset()
-                print(f"classification prompt: {prompt}")
                 response = agent.step(prompt)
                 classification = extract_json(response.content)
-                print(f"classification {response.content}")
                 
                 # validate classification
                 required_keys = ["key_visual", "problem_illustration", "method_workflow", "main_results", "comparative_results", "supporting"]

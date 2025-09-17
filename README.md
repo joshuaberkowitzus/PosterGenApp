@@ -113,6 +113,7 @@ Create a `.env` file in the project root with your API keys:
 ```bash
 OPENAI_API_KEY="your_openai_key"
 ANTHROPIC_API_KEY="your_anthropic_key"
+ZHIPU_API_KEY="your_zhipu_key"
 ```
 
 To use a compatible API service or a custom deployment, set the base URL in your `.env` file:
@@ -121,6 +122,7 @@ To use a compatible API service or a custom deployment, set the base URL in your
 OPENAI_BASE_URL="https://your-api-endpoint.com/v1"
 ANTHROPIC_BASE_URL="https://your-anthropic-endpoint.com"
 GOOGLE_BASE_URL="https://your-google-endpoint.com"
+ZHIPU_BASE_URL="https://your-zhipu-endpoint.com"
 ```
 
 ## Data Structure Setup
