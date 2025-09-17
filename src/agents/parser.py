@@ -276,7 +276,7 @@ class Parser:
 
     def _extract_title_authors(self, text: str, config) -> Tuple[str, str]:
         """extract title and authors via llm api"""
-        log_agent_info(self.name, "extracting title and authors")
+        log_agent_info(self.name, "extracting title and authors with llm")
         agent = LangGraphAgent("expert academic paper parser", config)
         
         for attempt in range(3):
