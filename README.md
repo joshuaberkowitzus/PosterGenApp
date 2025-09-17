@@ -41,7 +41,7 @@
   <a href="https://github.com/Y-Research-SBU/PosterGen/issues/1">
     <img src="https://img.shields.io/badge/WeChat-Group-green?style=flat-square&logo=wechat" alt="WeChat Group">
   </a>
-  <a href="https://discord.gg/5K8cPpWP">
+  <a href="https://discord.gg/44pKs6b3">
     <img src="https://img.shields.io/badge/Discord-Community-5865F2?style=flat-square&logo=discord" alt="Discord Community">
   </a>
 </p>
@@ -65,7 +65,7 @@
 ## 📢 News
 
 - **2025.08.26** Our paper is now available on [arXiv](https://arxiv.org/abs/2508.17188)! 📄
-- **2025.08.23** Code Released. PosterGen now available! 🎉
+- **2025.08.23** Code Released. PosterGen now available! 🎉🎉
 
 ## 🚀 Quick Start
 
@@ -79,10 +79,11 @@
 # Create and activate conda environment
 conda create -n poster python=3.11 -y
 conda activate poster
-pip install -r requirements.txt
 
 git clone -b main https://github.com/Y-Research-SBU/PosterGen.git
 cd PosterGen
+
+pip install -r requirements.txt
 ```
 
 ### 2. Install LibreOffice
@@ -289,6 +290,7 @@ This codebase is built upon following open-source projects. We express our since
 
 - **[LangGraph](https://github.com/langchain-ai/langgraph)**: Multi-agent workflow framework;
 - **[Marker](https://github.com/datalab-to/marker)**: High-quality PDF parsing library that enables accurate content extraction from research papers.
+- **[python-pptx](https://github.com/scanny/python-pptx)**: Python library for creating PowerPoint (.PPTX) poster files.
 
 ## Star History
 
