@@ -1,4 +1,3 @@
-
 import os
 import sys
 import tempfile
@@ -54,7 +53,12 @@ def get_available_models():
         "claude-sonnet-4-20250514",
         "gpt-4o-2024-08-06",
         "gpt-4.1-2025-04-14",
-        "gpt-4.1-mini-2025-04-14"
+        "gpt-4.1-mini-2025-04-14",
+        "glm-4.5",
+        "glm-4.5-air",
+        "glm-4.5v",
+        "glm-4",
+        "glm-4v"
     ]
 
 def create_job_directory() -> Path:
