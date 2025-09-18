@@ -75,6 +75,17 @@
 
 ### 1. Environment Setup
 
+#### Option 1: [UV](https://docs.astral.sh/uv/getting-started/installation/) (Recommended)
+
+```bash
+git clone -b main https://github.com/Y-Research-SBU/PosterGen.git
+cd PosterGen
+
+uv sync
+```
+
+#### Option 2: Conda
+
 ```bash
 # Create and activate conda environment
 conda create -n poster python=3.11 -y
@@ -153,6 +164,18 @@ data/
 
 Generate your poster with a single command:
 
+**For UV setup:**
+```bash
+uv run python -m src.workflow.pipeline \
+  --poster_width 54 --poster_height 36 \
+  --paper_path ./data/Your_Paper_Name/paper.pdf \
+  --text_model gpt-4.1-2025-04-14 \
+  --vision_model gpt-4.1-2025-04-14 \
+  --logo ./data/Your_Paper_Name/logo.png \
+  --aff_logo ./data/Your_Paper_Name/aff.png
+```
+
+**For Conda setup:**
 ```bash
 python -m src.workflow.pipeline \
   --poster_width 54 --poster_height 36 \
@@ -179,15 +202,14 @@ Upload your PDF paper and logos through drag-and-drop, configure models and dime
 
 **Prerequisites:**
 - Node.js installed
-- Main PosterGen dependencies installed (`pip install -r requirements.txt` from project root)
+- Main PosterGen dependencies installed (from project root)
 - API keys configured in `.env` file
 
 ```bash
-# Install main project dependencies (if not done already)
-pip install -r requirements.txt
+# Install main project dependencies (if not done already, refer to Environment Setup above)
 
 # Start backend
-cd webui && pip install -r requirements.txt && python start_backend.py
+cd webui && python start_backend.py
 
 # Start frontend (in new terminal, from project root)
 cd webui && sh ./start_frontend.sh
