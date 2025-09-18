@@ -220,5 +220,3 @@ hf/
 # Node.js (webui frontend)
 webui/frontend/node_modules/
 webui/frontend/package-lock.json
-
-marker-master/
