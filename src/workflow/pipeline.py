@@ -58,10 +58,10 @@ def main():
     parser = argparse.ArgumentParser(description="PosterGen: Multi-agent Aesthetic-aware Paper-to-poster generation")
     parser.add_argument("--paper_path", type=str, required=True, help="Path to the PDF paper")
     parser.add_argument("--text_model", type=str, default="gpt-4o-2024-08-06", 
-                       choices=["gpt-4o-2024-08-06", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14", "claude-sonnet-4-20250514"],
+                       choices=["gpt-4o-2024-08-06", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14", "claude-sonnet-4-20250514", "gemini-2.5-pro", "glm-4.5", "glm-4.5-air", "glm-4"],
                        help="Text model for content processing")
     parser.add_argument("--vision_model", type=str, default="gpt-4o-2024-08-06",
-                       choices=["gpt-4o-2024-08-06", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14", "claude-sonnet-4-20250514"],
+                       choices=["gpt-4o-2024-08-06", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14", "claude-sonnet-4-20250514", "gemini-2.5-pro", "glm-4.5v", "glm-4v"],
                        help="Vision model for image analysis")
     parser.add_argument("--poster_width", type=float, default=54, help="Poster width in inches")
     parser.add_argument("--poster_height", type=float, default=36, help="Poster height in inches")
@@ -88,9 +88,10 @@ def main():
         print(f"❌ .env file NOT found")
     
     # check api keys
-    required_keys = {"openai": "OPENAI_API_KEY", "anthropic": "ANTHROPIC_API_KEY", "google": "GOOGLE_API_KEY"}
-    model_providers = {"claude-sonnet-4-20250514": "anthropic", "gemini": "google",
-                      "gpt-4o-2024-08-06": "openai", "gpt-4.1-2025-04-14": "openai", "gpt-4.1-mini-2025-04-14": "openai"}
+    required_keys = {"openai": "OPENAI_API_KEY", "anthropic": "ANTHROPIC_API_KEY", "google": "GOOGLE_API_KEY", "zhipu": "ZHIPU_API_KEY"}
+    model_providers = {"claude-sonnet-4-20250514": "anthropic", "gemini": "google", "gemini-2.5-pro": "google",
+                      "gpt-4o-2024-08-06": "openai", "gpt-4.1-2025-04-14": "openai", "gpt-4.1-mini-2025-04-14": "openai",
+                      "glm-4.5": "zhipu", "glm-4.5-air": "zhipu", "glm-4.5v": "zhipu", "glm-4": "zhipu", "glm-4v": "zhipu"}
     
     needed_keys = set()
     if args.text_model in model_providers:

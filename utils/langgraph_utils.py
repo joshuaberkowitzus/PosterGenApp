@@ -9,6 +9,7 @@ import json_repair
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic  
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_community.chat_models import ChatZhipuAI
 from langchain.schema import HumanMessage, SystemMessage
 from langchain_community.callbacks.manager import get_openai_callback
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -20,12 +21,20 @@ load_dotenv()
 
 def create_model(config: ModelConfig):
     """create chat model from config"""
+    # common timeout settings for all providers
+    timeout_settings = {
+        'request_timeout': 500,  # 2 minutes for request timeout
+        'max_retries': 2,        # reduce retries at model level since we have tenacity
+    }
+    
     if config.provider == 'openai':
         openai_kwargs = {
             'model_name': config.model_name,
             'temperature': config.temperature,
             'max_tokens': config.max_tokens,
-            'api_key': os.getenv('OPENAI_API_KEY')
+            'api_key': os.getenv('OPENAI_API_KEY'),
+            'request_timeout': timeout_settings['request_timeout'],
+            'max_retries': timeout_settings['max_retries'],
         }
         base_url = os.getenv('OPENAI_BASE_URL')
         if base_url:
@@ -37,7 +46,9 @@ def create_model(config: ModelConfig):
             'model': config.model_name,
             'temperature': config.temperature,
             'max_tokens': config.max_tokens,
-            'api_key': os.getenv('ANTHROPIC_API_KEY')
+            'api_key': os.getenv('ANTHROPIC_API_KEY'),
+            'timeout': timeout_settings['request_timeout'],
+            'max_retries': timeout_settings['max_retries'],
         }
         base_url = os.getenv('ANTHROPIC_BASE_URL')
         if base_url:
@@ -49,13 +60,30 @@ def create_model(config: ModelConfig):
             'model': config.model_name,
             'temperature': config.temperature,
             'max_output_tokens': config.max_tokens,
-            'google_api_key': os.getenv('GOOGLE_API_KEY')
+            'google_api_key': os.getenv('GOOGLE_API_KEY'),
+            'timeout': timeout_settings['request_timeout'],
+            'max_retries': timeout_settings['max_retries'],
         }
         base_url = os.getenv('GOOGLE_BASE_URL')
         if base_url:
             google_kwargs['base_url'] = base_url
             
         return ChatGoogleGenerativeAI(**google_kwargs)
+    elif config.provider == 'zhipu':
+        zhipu_kwargs = {
+            'model': config.model_name,
+            'temperature': config.temperature,
+            'max_tokens': config.max_tokens,
+            'api_key': os.getenv('ZHIPU_API_KEY'),
+            'timeout': timeout_settings['request_timeout'],
+            'max_retries': timeout_settings['max_retries'],
+            'thinking': {"type": "disabled"}  
+        }
+        base_url = os.getenv('ZHIPU_BASE_URL')
+        if base_url:
+            zhipu_kwargs['base_url'] = base_url
+            
+        return ChatZhipuAI(**zhipu_kwargs)
     else:
         raise ValueError(f"unsupported provider: {config.provider}")
 
@@ -106,7 +134,24 @@ class LangGraphAgent:
                 input_tokens = len(message.split()) * 1.3
                 output_tokens = len(response.content.split()) * 1.3
         except Exception as e:
-            print(f"model call failed: {e}")
+            error_msg = f"model call failed: {e}"
+            print(error_msg)
+            
+            # provide more specific error information
+            if "timeout" in str(e).lower() or "read operation timed out" in str(e).lower():
+                print(f"⚠️  Timeout error detected for {self.config.provider} {self.config.model_name}")
+                print("💡 Possible solutions:")
+                print("   - Check your internet connection")
+                print("   - Verify API key is valid")
+                print("   - Try using a different model provider")
+                print("   - Consider increasing timeout settings")
+            elif "rate limit" in str(e).lower():
+                print(f"⚠️  Rate limit exceeded for {self.config.provider}")
+                print("💡 Consider adding delays between requests")
+            elif "authentication" in str(e).lower() or "api key" in str(e).lower():
+                print(f"⚠️  Authentication error for {self.config.provider}")
+                print("💡 Check your API key configuration")
+            
             input_tokens = len(message.split()) * 1.3
             output_tokens = 100
             raise
@@ -144,7 +189,20 @@ class LangGraphAgent:
                 input_tokens = 200  # rough estimate for image
                 output_tokens = len(response.content.split()) * 1.3
         except Exception as e:
-            print(f"vision model call failed: {e}")
+            error_msg = f"vision model call failed: {e}"
+            print(error_msg)
+            
+            # provide more specific error information for vision calls
+            if "timeout" in str(e).lower() or "read operation timed out" in str(e).lower():
+                print(f"⚠️  Vision timeout error detected for {self.config.provider} {self.config.model_name}")
+                print("💡 Vision calls may take longer due to image processing")
+                print("   - Consider using a different vision model")
+                print("   - Check image size and format")
+            elif "rate limit" in str(e).lower():
+                print(f"⚠️  Rate limit exceeded for vision calls on {self.config.provider}")
+            elif "authentication" in str(e).lower() or "api key" in str(e).lower():
+                print(f"⚠️  Authentication error for vision calls on {self.config.provider}")
+            
             raise
         
         return AgentResponse(response.content, input_tokens, output_tokens)
@@ -179,4 +237,4 @@ def extract_json(response: str) -> Dict[str, Any]:
 def load_prompt(path: str) -> str:
     """load prompt template from file"""
     with open(path, 'r', encoding='utf-8') as f:
-        return f.read() 
+        return f.read()

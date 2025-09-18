@@ -286,7 +286,7 @@ class Parser:
                 response = agent.step(prompt)
                 
                 result = extract_json(response.content)
-                
+
                 if "title" in result and "authors" in result:
                     title = result["title"].strip()
                     authors = result["authors"].strip()
