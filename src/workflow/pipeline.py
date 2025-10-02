@@ -12,6 +12,9 @@ from typing import List, Dict, Any, Optional
 from google.cloud import secretmanager
 from google.cloud import storage
 import tempfile
+from fastapi import FastAPI, HTTPException, Request
+from pydantic import BaseModel
+import uvicorn
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -86,8 +89,79 @@ def create_workflow_graph() -> StateGraph:
     
     return graph
 
+app = FastAPI()
+
+class PosterRequest(BaseModel):
+    gcs_input_bucket: str
+    gcs_output_bucket: str
+    paper_path: str
+    logo: Optional[str] = None
+    aff_logo: Optional[str] = None
+    text_model: str = "gpt-4o-2024-08-06"
+    multimodal_model: str = "gpt-4o-2024-08-06"
+    image_model: str = "dall-e-3"
+    fast_llm_model: str = "gpt-4.1-mini-2025-04-14"
+    fast_search: bool = False
+    output_path: str = "poster.pptx"
+    debug_mode: bool = False
+
+@app.post("/generate-poster/")
+async def generate_poster(request: PosterRequest):
+    """
+    API endpoint to generate a poster from a paper in GCS.
+    """
+    try:
+        # Create a temporary directory to handle files
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            
+            # Download paper from GCS
+            paper_local_path = temp_path / Path(request.paper_path).name
+            download_from_gcs(request.gcs_input_bucket, request.paper_path, str(paper_local_path))
+
+            # Download logos if provided
+            logo_local_path = None
+            if request.logo:
+                logo_local_path = temp_path / Path(request.logo).name
+                download_from_gcs(request.gcs_input_bucket, request.logo, str(logo_local_path))
+
+            aff_logo_local_path = None
+            if request.aff_logo:
+                aff_logo_local_path = temp_path / Path(request.aff_logo).name
+                download_from_gcs(request.gcs_input_bucket, request.aff_logo, str(aff_logo_local_path))
+
+            # Prepare initial state for the workflow
+            initial_state = create_state(
+                paper_path=str(paper_local_path),
+                logo=str(logo_local_path) if logo_local_path else None,
+                aff_logo=str(aff_logo_local_path) if aff_logo_local_path else None,
+                text_model=request.text_model,
+                multimodal_model=request.multimodal_model,
+                image_model=request.image_model,
+                fast_llm_model=request.fast_llm_model,
+                fast_search=request.fast_search,
+                output_path=str(temp_path / request.output_path),
+                debug_mode=request.debug_mode
+            )
+
+            # Create and run the workflow
+            graph = create_workflow_graph()
+            app_runnable = graph.compile()
+            final_state = app_runnable.invoke(initial_state)
+
+            # Upload the final poster to GCS
+            output_gcs_path = f"posters/{Path(request.paper_path).stem}_poster.pptx"
+            upload_to_gcs(request.gcs_output_bucket, final_state['output_path'], output_gcs_path)
+
+            return {"status": "success", "output_path": output_gcs_path}
+
+    except Exception as e:
+        log_agent_error("main", f"An error occurred: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 def main():
+    # This main function is now for local execution and debugging
+    # The cloud execution will be handled by the FastAPI app
     parser = argparse.ArgumentParser(description="PosterGen: Multi-agent Aesthetic-aware Paper-to-poster generation")
     # GCS arguments
     parser.add_argument("--gcs_input_bucket", type=str, help="GCS bucket for input files")
@@ -237,4 +311,10 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # The server is started with Uvicorn.
+    # The host is set to '0.0.0.0' to be accessible from outside the container.
+    # The port is read from the PORT environment variable, which is set by Cloud Run.
+    # A default of 8080 is used for local development.
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
