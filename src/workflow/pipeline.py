@@ -97,15 +97,15 @@ class PosterRequest(BaseModel):
     pdf_path: str
     logo: Optional[str] = None
     aff_logo: Optional[str] = None
-    text_model: str = "gpt-4o-2024-08-06"
-    multimodal_model: str = "gpt-4o-2024-08-06"
-    image_model: str = "dall-e-3"
-    fast_llm_model: str = "gpt-4.1-mini-2025-04-14"
+    text_model: str = "gpt-5-2025-08-07" #"gpt-4o-2024-08-06"
+    multimodal_model: str = "gpt-5-2025-08-07" #"gpt-4o-2024-08-06"
+    image_model: str = "gpt-image-1" #"dall-e-3"
+    fast_llm_model: str = "gpt-5-mini-2025-08-07"
     fast_search: bool = False
     output_path: str = "poster.pptx"
     debug_mode: bool = False
-    width: int = 54
-    height: int = 36
+    width: int = 42
+    height: int = 28
     url: Optional[str] = None
 
 @app.post("/generate-poster/")

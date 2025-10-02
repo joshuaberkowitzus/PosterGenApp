@@ -148,7 +148,7 @@ data/
     └── logo.png          # Conference logo for poster (required)
 ```
 
-**Examples (check ``data/`` folder):**
+**Examples (check `data/` folder):**
 ```
 data/
 └── Neural_Encoding_and_Decoding_at_Scale/
@@ -220,6 +220,223 @@ cd webui && sh ./start_frontend.sh
 ![webui](./resource/webui-start.png)
 
 ![webui](./resource/webui-finish.png)
+
+## ☁️ Deploy to Google Cloud Run
+
+This repository includes a FastAPI backend (see `src/workflow/pipeline.py`) and a production-ready Dockerfile. You can deploy it to Cloud Run either with the provided `cloudbuild.yaml` or directly from your local machine.
+
+### Prerequisites
+- Google Cloud project with billing enabled
+- Google Cloud CLI installed and initialized
+- APIs enabled: Cloud Run Admin API, Cloud Build API, Secret Manager API, Cloud Storage API
+- GCS buckets created for input and output PDFs
+
+```powershell
+# Set your project
+$project = "YOUR_PROJECT_ID"
+gcloud config set project $project
+
+# Enable required APIs
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com storage.googleapis.com
+```
+
+### 1) Create secrets in Secret Manager
+PosterGen reads API keys from Secret Manager when `GCP_PROJECT_ID` is set. At minimum, create `OPENAI_API_KEY`. You can also add `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `ZHIPU_API_KEY` as needed by the models you choose.
+
+```powershell
+# Create a secret (first time)
+# (Replace the value with your real key)
+$env:OPENAI_API_KEY = "sk-your-openai-key"
+echo $env:OPENAI_API_KEY | gcloud secrets create OPENAI_API_KEY --data-file=-
+
+# If the secret already exists, add a new version instead:
+# echo $env:OPENAI_API_KEY | gcloud secrets versions add OPENAI_API_KEY --data-file=-
+```
+
+### 2) Grant IAM to the Cloud Run service account
+Cloud Run needs permission to access Secret Manager and your GCS buckets. By default, Cloud Run runs as the Compute Engine default service account.
+
+```powershell
+# Resolve default service account for the project
+$projectNumber = (gcloud projects describe $project --format 'value(projectNumber)')
+$sa = "$projectNumber-compute@developer.gserviceaccount.com"
+
+# Allow reading secrets
+gcloud projects add-iam-policy-binding $project `
+  --member="serviceAccount:$sa" `
+  --role="roles/secretmanager.secretAccessor"
+
+# Allow reading your input bucket and writing to your output bucket
+# Replace these with your bucket names
+$inputBucket = "gs://YOUR_INPUT_BUCKET"
+$outputBucket = "gs://YOUR_OUTPUT_BUCKET"
+
+gcloud storage buckets add-iam-policy-binding $inputBucket `
+  --member="serviceAccount:$sa" `
+  --role="roles/storage.objectViewer"
+
+gcloud storage buckets add-iam-policy-binding $outputBucket `
+  --member="serviceAccount:$sa" `
+  --role="roles/storage.objectAdmin"
+```
+
+### 3A) Deploy with Cloud Build (using cloudbuild.yaml)
+The included `cloudbuild.yaml` builds, pushes, and deploys to Cloud Run with sensible defaults (16Gi memory, 4 CPU, 60-minute timeout) and injects `OPENAI_API_KEY` from Secret Manager.
+
+```powershell
+# Optional: edit cloudbuild.yaml to set your preferred region (default: us-east4)
+# Then run:
+cd PosterGenApp
+gcloud builds submit --config cloudbuild.yaml
+```
+
+This will create a service named `postergen-backend`. After the build completes, note the service URL from the Cloud Run console.
+
+If the service needs the project ID at runtime, set the environment variable on the service after deployment:
+
+```powershell
+# Set GCP_PROJECT_ID for the running service (so the app can locate secrets)
+gcloud run services update postergen-backend `
+  --region us-east4 `
+  --set-env-vars GCP_PROJECT_ID=$project
+```
+
+### 3B) Deploy directly (without Cloud Build)
+Alternatively, build and deploy in two steps:
+
+```powershell
+# Build and push the image to gcr.io
+cd PosterGenApp
+gcloud builds submit --tag gcr.io/$project/postergen-backend
+
+# Deploy to Cloud Run (adjust region if needed)
+gcloud run deploy postergen-backend `
+  --image gcr.io/$project/postergen-backend `
+  --region us-east4 `
+  --allow-unauthenticated `
+  --memory=16Gi `
+  --cpu=4 `
+  --timeout=3600 `
+  --set-secrets=OPENAI_API_KEY=OPENAI_API_KEY:latest `
+  --set-env-vars=GCP_PROJECT_ID=$project
+```
+
+Notes:
+- Use `--no-allow-unauthenticated` to make the service private (see Auth below).
+- If you use other providers, also inject their keys via `--set-secrets` and grant `secretAccessor`.
+
+### Auth: public vs private
+- Public service: leave `--allow-unauthenticated` (or enable public access in the console). This is simplest for testing.
+- Private service: deploy with `--no-allow-unauthenticated` and call with an ID token.
+
+```powershell
+# Example: call a private service using an ID token
+$SERVICE_URL = "https://<your-cloud-run-host>"  # no trailing slash
+$TOKEN = (gcloud auth print-identity-token)
+
+$body = @{ 
+  gcs_input_bucket = "YOUR_INPUT_BUCKET";
+  gcs_output_bucket = "YOUR_OUTPUT_BUCKET";
+  pdf_path = "your_paper_name/paper.pdf";
+  logo = "your_paper_name/logo.png";
+  aff_logo = "your_paper_name/aff.png";
+  width = 54; height = 36
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri "$SERVICE_URL/generate-poster/" `
+  -Headers @{ Authorization = "Bearer $TOKEN" } `
+  -ContentType 'application/json' `
+  -Body $body
+```
+
+## 🔌 HTTP API: `/generate-poster/`
+
+FastAPI exposes a JSON API for end-to-end poster generation orchestrated by LangGraph. The service reads the paper and logos from your input GCS bucket, runs the multi-agent pipeline, then writes the final `.pptx` to your output GCS bucket.
+
+- Method: POST
+- Path: `/generate-poster/`
+- Auth: Public if service allows unauthenticated; otherwise send an ID token
+- Content-Type: `application/json`
+
+### Request body
+```json
+{
+  "gcs_input_bucket": "<INPUT_BUCKET>",
+  "gcs_output_bucket": "<OUTPUT_BUCKET>",
+  "pdf_path": "<path/in/input/bucket/to/paper.pdf>",
+  "logo": "<optional path/in/input/bucket/to/logo.png>",
+  "aff_logo": "<optional path/in/input/bucket/to/aff.png>",
+  "text_model": "gpt-5-2025-08-07",
+  "multimodal_model": "gpt-5-2025-08-07",
+  "image_model": "gpt-image-1",
+  "fast_llm_model": "gpt-5-mini-2025-08-07",
+  "fast_search": false,
+  "output_path": "poster.pptx",
+  "debug_mode": false,
+  "width": 54,
+  "height": 36,
+  "url": "https://example.com/optional-qr-url"
+}
+```
+
+Required fields:
+- `gcs_input_bucket`, `gcs_output_bucket`, `pdf_path`
+
+Dimensions:
+- `width` and `height` are inches; the pipeline enforces a width/height ratio between 1.4 and 2.0.
+
+Models:
+- The defaults are provided. If you change providers, ensure the corresponding Secret Manager keys exist and are injected. The server also relies on `GCP_PROJECT_ID` to resolve secret access.
+
+### Example requests
+
+PowerShell (public service):
+```powershell
+$SERVICE_URL = "https://<your-cloud-run-host>"  # no trailing slash
+$body = @{ 
+  gcs_input_bucket = "YOUR_INPUT_BUCKET";
+  gcs_output_bucket = "YOUR_OUTPUT_BUCKET";
+  pdf_path = "your_paper_name/paper.pdf";
+  logo = "your_paper_name/logo.png";
+  aff_logo = "your_paper_name/aff.png";
+  width = 54; height = 36
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri "$SERVICE_URL/generate-poster/" `
+  -ContentType 'application/json' `
+  -Body $body
+```
+
+curl (public service):
+```bash
+curl -X POST "$SERVICE_URL/generate-poster/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "gcs_input_bucket": "YOUR_INPUT_BUCKET",
+    "gcs_output_bucket": "YOUR_OUTPUT_BUCKET",
+    "pdf_path": "your_paper_name/paper.pdf",
+    "logo": "your_paper_name/logo.png",
+    "aff_logo": "your_paper_name/aff.png",
+    "width": 54,
+    "height": 36
+  }'
+```
+
+### Response
+```json
+{
+  "status": "success",
+  "output_path": "gs://<OUTPUT_BUCKET>/<poster_name>.pptx"
+}
+```
+
+On error, the API returns HTTP 500 with details in the `detail` field. Check Cloud Run logs for stack traces.
+
+### Tips & Troubleshooting
+- Ensure `GCP_PROJECT_ID` is set on the Cloud Run service if you rely on Secret Manager inside the app.
+- Missing permissions commonly cause 500s: grant `secretAccessor` and Storage roles to the service account.
+- Set generous limits for long papers: `--memory=16Gi --cpu=4 --timeout=3600` (already present in `cloudbuild.yaml`).
+- Explore interactive docs at `https://<service>/docs` (FastAPI Swagger UI) and `https://<service>/redoc`.
 
 ## Output Structure
 
