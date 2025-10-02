@@ -21,7 +21,9 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--memory=2Gi'
+      - '--memory=16Gi'
+      - '--cpu=4'
+      - '--timeout=3600'
       - '--set-secrets=OPENAI_API_KEY=OPENAI_API_KEY:latest'
 images:
   - 'gcr.io/$PROJECT_ID/postergen-backend'

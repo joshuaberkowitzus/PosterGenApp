@@ -94,7 +94,7 @@ app = FastAPI()
 class PosterRequest(BaseModel):
     gcs_input_bucket: str
     gcs_output_bucket: str
-    paper_path: str
+    pdf_path: str
     logo: Optional[str] = None
     aff_logo: Optional[str] = None
     text_model: str = "gpt-4o-2024-08-06"
@@ -104,6 +104,9 @@ class PosterRequest(BaseModel):
     fast_search: bool = False
     output_path: str = "poster.pptx"
     debug_mode: bool = False
+    width: int = 54
+    height: int = 36
+    url: Optional[str] = None
 
 @app.post("/generate-poster/")
 async def generate_poster(request: PosterRequest):
@@ -116,8 +119,8 @@ async def generate_poster(request: PosterRequest):
             temp_path = Path(temp_dir)
             
             # Download paper from GCS
-            paper_local_path = temp_path / Path(request.paper_path).name
-            download_from_gcs(request.gcs_input_bucket, request.paper_path, str(paper_local_path))
+            paper_local_path = temp_path / Path(request.pdf_path).name
+            download_from_gcs(request.gcs_input_bucket, request.pdf_path, str(paper_local_path))
 
             # Download logos if provided
             logo_local_path = None
@@ -132,28 +135,40 @@ async def generate_poster(request: PosterRequest):
 
             # Prepare initial state for the workflow
             initial_state = create_state(
-                paper_path=str(paper_local_path),
-                logo=str(logo_local_path) if logo_local_path else None,
-                aff_logo=str(aff_logo_local_path) if aff_logo_local_path else None,
+                pdf_path=str(paper_local_path),
                 text_model=request.text_model,
-                multimodal_model=request.multimodal_model,
-                image_model=request.image_model,
-                fast_llm_model=request.fast_llm_model,
-                fast_search=request.fast_search,
-                output_path=str(temp_path / request.output_path),
-                debug_mode=request.debug_mode
+                vision_model=request.text_model, # Corrected from multimodal_model
+                logo_path=str(logo_local_path) if logo_local_path else "",
+                aff_logo_path=str(aff_logo_local_path) if aff_logo_local_path else "",
+                width=request.width,
+                height=request.height,
+                url=request.url
             )
 
             # Create and run the workflow
             graph = create_workflow_graph()
-            app_runnable = graph.compile()
-            final_state = app_runnable.invoke(initial_state)
+            app_graph = graph.compile()
+            final_state = app_graph.invoke(initial_state)
 
             # Upload the final poster to GCS
-            output_gcs_path = f"posters/{Path(request.paper_path).stem}_poster.pptx"
-            upload_to_gcs(request.gcs_output_bucket, final_state['output_path'], output_gcs_path)
+            if "output_dir" in final_state and "poster_name" in final_state:
+                output_dir = Path(final_state["output_dir"])
+                poster_name = final_state["poster_name"]
+                output_local_path = output_dir / f"{poster_name}.pptx"
+                
+                if output_local_path.exists():
+                    # The destination path in GCS will be based on the poster name
+                    destination_blob_name = f"{poster_name}.pptx"
+                    upload_to_gcs(request.gcs_output_bucket, str(output_local_path), destination_blob_name)
+                    final_gcs_path = f"gs://{request.gcs_output_bucket}/{destination_blob_name}"
+                else:
+                    raise HTTPException(status_code=500, detail=f"Generated poster file not found at path: {output_local_path}")
+            else:
+                # Log the state for debugging if the expected keys are missing
+                log_agent_error("main", f"Workflow final state did not contain 'output_dir' or 'poster_name'. State: {final_state}")
+                raise HTTPException(status_code=500, detail="Output file could not be determined from workflow state.")
 
-            return {"status": "success", "output_path": output_gcs_path}
+            return {"status": "success", "output_path": final_gcs_path}
 
     except Exception as e:
         log_agent_error("main", f"An error occurred: {e}")

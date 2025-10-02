@@ -1,372 +1,503 @@
-import React, { useState, useEffect } from 'react';
-import { FileUpload } from './components/FileUpload';
-import { ProgressBar } from './components/ProgressBar';
+import React, { ChangeEvent, FormEvent, useMemo, useState } from 'react';
+import { isAxiosError } from 'axios';
 import { apiService } from './api';
-import { PosterConfig, UploadedFiles, JobStatus } from './types';
+import { GeneratePosterResponse, PosterFormState } from './types';
 import postergenLogo from './postergen-logo.png';
 
-function App() {
-  const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [config, setConfig] = useState<PosterConfig>({
-    text_model: '',
-    vision_model: '',
-    poster_width: 54,
-    poster_height: 36,
-  });
-  const [files, setFiles] = useState<UploadedFiles>({
-    pdf_file: null,
-    logo_file: null,
-    aff_logo_file: null,
-  });
-  const [currentJob, setCurrentJob] = useState<JobStatus | null>(null);
-  const [error, setError] = useState<string | null>(null);
+const CLOUD_RUN_BASE_URL = 'https://postergen-backend-367063486603.us-east4.run.app';
+const resolvedEnv =
+  typeof import.meta !== 'undefined' && 'env' in import.meta
+    ? (import.meta as ImportMeta & { env: Record<string, string | undefined> }).env
+    : undefined;
+const API_BASE_URL = resolvedEnv?.VITE_API_BASE_URL ?? CLOUD_RUN_BASE_URL;
+
+const INITIAL_FORM_STATE: PosterFormState = {
+  gcs_input_bucket: '',
+  gcs_output_bucket: '',
+  pdf_path: '',
+  logo: '',
+  aff_logo: '',
+  text_model: 'gpt-4o-2024-08-06',
+  multimodal_model: 'gpt-4o-2024-08-06',
+  image_model: 'dall-e-3',
+  fast_llm_model: 'gpt-4.1-mini-2025-04-14',
+  fast_search: false,
+  output_path: 'poster.pptx',
+  debug_mode: false,
+  width: 54,
+  height: 36,
+  url: '',
+};
+
+const REQUIRED_FIELDS: Array<keyof PosterFormState> = [
+  'gcs_input_bucket',
+  'gcs_output_bucket',
+  'pdf_path',
+];
+
+const validateForm = (form: PosterFormState): string | null => {
+  for (const field of REQUIRED_FIELDS) {
+    const value = form[field];
+
+    if (typeof value === 'string') {
+      if (!value.trim()) {
+        return 'Please fill out all required fields.';
+      }
+    } else if (value == null) {
+      return 'Please fill out all required fields.';
+    }
+  }
+
+  if (form.width <= 0 || form.height <= 0) {
+    return 'Poster dimensions must be positive numbers.';
+  }
+
+  const ratio = form.height ? form.width / form.height : 0;
+  if (form.height && (ratio < 1.4 || ratio > 2.0)) {
+    return `Poster ratio ${ratio.toFixed(2)} is out of range (1.4 - 2.0).`;
+  }
+
+  return null;
+};
+
+const copyToClipboard = async (value: string) => {
+  if (navigator?.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = value;
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+};
+
+const App: React.FC = () => {
+  const [form, setForm] = useState<PosterFormState>({ ...INITIAL_FORM_STATE });
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [logs, setLogs] = useState<string[]>([]);
-  const [jsonFiles, setJsonFiles] = useState<Record<string, any>>({});
-  const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<GeneratePosterResponse | null>(null);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
 
-  useEffect(() => {
-    const loadModels = async () => {
-      try {
-        const models = await apiService.getModels();
-        setAvailableModels(models);
-        if (models.length > 0) {
-          setConfig(prev => ({
-            ...prev,
-            text_model: models[0],
-            vision_model: models[0],
-          }));
-        }
-      } catch (err) {
-        setError('Failed to load available models');
-      }
+  const posterRatio = useMemo(() => {
+    if (!form.height) {
+      return 0;
+    }
+
+    return form.width / form.height;
+  }, [form.width, form.height]);
+
+  const posterRatioDisplay = useMemo(
+    () => (form.height ? posterRatio.toFixed(2) : '—'),
+    [posterRatio, form.height],
+  );
+
+  const isRatioValid = form.height > 0 && posterRatio >= 1.4 && posterRatio <= 2.0;
+
+  const handleStringChange =
+    (field: keyof PosterFormState) => (event: ChangeEvent<HTMLInputElement>) => {
+      setForm((prev: PosterFormState) => ({ ...prev, [field]: event.target.value }));
     };
-    
-    loadModels();
-  }, []);
 
-  useEffect(() => {
-    if (!currentJob || currentJob.status === 'completed' || currentJob.status === 'failed') {
-      return;
-    }
+  const handleNumberChange =
+    (field: 'width' | 'height') => (event: ChangeEvent<HTMLInputElement>) => {
+      const numericValue = Number(event.target.value);
+      setForm((prev: PosterFormState) => ({
+        ...prev,
+        [field]: Number.isFinite(numericValue) ? numericValue : prev[field],
+      }));
+    };
 
-    const pollInterval = setInterval(async () => {
-      try {
-        const [status, logs] = await Promise.all([
-          apiService.getJobStatus(currentJob.job_id),
-          apiService.getJobLogs(currentJob.job_id)
-        ]);
-        
-        setCurrentJob(status);
-        setLogs(logs);
-        
-        if (status.status === 'failed') {
-          setError(status.error || 'Job failed');
-          setIsSubmitting(false);
-        } else if (status.status === 'completed') {
-          setIsSubmitting(false);
-          fetchJsonFiles(currentJob.job_id);
-        }
-      } catch (err) {
-        setError('Failed to check job status');
-        setIsSubmitting(false);
-      }
-    }, 2000);
+  const handleCheckboxChange =
+    (field: 'fast_search' | 'debug_mode') => (event: ChangeEvent<HTMLInputElement>) => {
+      setForm((prev: PosterFormState) => ({ ...prev, [field]: event.target.checked }));
+    };
 
-    return () => clearInterval(pollInterval);
-  }, [currentJob]);
-
-  const fetchJsonFiles = async (jobId: string) => {
-    try {
-      const response = await fetch(`http://localhost:8000/files/${jobId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setJsonFiles(data.files || {});
-      }
-    } catch (error) {
-      console.error('Failed to fetch JSON files:', error);
-    }
-  };
-
-  const getPosterImageUrl = () => {
-    if (!currentJob || currentJob.status !== 'completed') return null;
-    return `http://localhost:8000/poster/${currentJob.job_id}`;
-  };
-
-  const toggleFileExpansion = (filename: string) => {
-    const newExpanded = new Set(expandedFiles);
-    if (newExpanded.has(filename)) {
-      newExpanded.delete(filename);
-    } else {
-      newExpanded.add(filename);
-    }
-    setExpandedFiles(newExpanded);
-  };
-
-  const copyToClipboard = (content: string) => {
-    navigator.clipboard.writeText(content);
-  };
-
-  const handleConfigChange = (field: keyof PosterConfig, value: string | number) => {
-    setConfig(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleFileChange = (field: keyof UploadedFiles, file: File) => {
-    setFiles(prev => ({ ...prev, [field]: file }));
+  const resetForm = () => {
+    setForm({ ...INITIAL_FORM_STATE });
+    setShowAdvanced(false);
     setError(null);
+    setResult(null);
+    setCopyStatus('idle');
   };
 
-  const validateForm = (): string | null => {
-    if (!files.pdf_file) return 'Please upload a PDF paper';
-    if (!files.logo_file) return 'Please upload a conference logo';
-    if (!files.aff_logo_file) return 'Please upload an affiliation logo';
-    
-    const ratio = config.poster_width / config.poster_height;
-    if (ratio < 1.4 || ratio > 2.0) {
-      return `Poster ratio ${ratio.toFixed(2)} is out of range (1.4 - 2.0)`;
-    }
-    
-    return null;
-  };
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    setResult(null);
+    setCopyStatus('idle');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const validationError = validateForm();
+    const validationError = validateForm(form);
     if (validationError) {
       setError(validationError);
       return;
     }
 
     setIsSubmitting(true);
-    setError(null);
-    setCurrentJob(null);
 
     try {
-      const jobStatus = await apiService.generatePoster(config, files);
-      setCurrentJob(jobStatus);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to start poster generation');
+      const response = await apiService.generatePoster(form);
+      setResult(response);
+  } catch (error: unknown) {
+      let message = 'An unexpected error occurred while generating the poster.';
+
+      if (isAxiosError(error)) {
+        const detail = error.response?.data?.detail;
+        message = typeof detail === 'string' ? detail : error.message;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+
+      setError(message);
+    } finally {
       setIsSubmitting(false);
     }
   };
 
-  const canSubmit = files.pdf_file && files.logo_file && files.aff_logo_file && !isSubmitting;
+  const handleCopyOutputPath = async () => {
+    if (!result?.output_path) {
+      return;
+    }
+
+    try {
+      await copyToClipboard(result.output_path);
+      setCopyStatus('copied');
+      setTimeout(() => setCopyStatus('idle'), 3000);
+    } catch (err) {
+      console.error('Failed to copy output path', err);
+      setCopyStatus('error');
+      setTimeout(() => setCopyStatus('idle'), 3000);
+    }
+  };
 
   return (
     <div className="container">
       <div className="header">
-        <h1 style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src={postergenLogo} alt="PosterGen Logo" style={{height: '1.5em', marginRight: '0.5em'}} />PosterGen WebUI</h1>
-        <p>🎨 Generate design-aware academic posters from PDF papers</p>
+        <h1 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <img
+            src={postergenLogo}
+            alt="PosterGen Logo"
+            style={{ height: '1.5em', marginRight: '0.5em' }}
+          />
+          PosterGen WebUI
+        </h1>
+        <p>🎨 Generate design-aware academic posters from PDF papers stored in Google Cloud Storage</p>
+        <p style={{ marginTop: '8px', fontSize: '0.95rem', color: '#4b5563' }}>
+          Backend: {API_BASE_URL}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="main-form">
         <div className="form-section">
-          <h3 className="section-title">📄 Upload Files</h3>
-          
+          <h3 className="section-title">☁️ Cloud Storage Inputs</h3>
           <div className="form-group">
-            <label>PDF Paper</label>
-            <FileUpload
-              label="PDF Paper"
-              accept="application/pdf"
-              selectedFile={files.pdf_file}
-              onFileSelect={(file) => handleFileChange('pdf_file', file)}
+            <label htmlFor="gcs_input_bucket">Input bucket *</label>
+            <input
+              id="gcs_input_bucket"
+              type="text"
+              value={form.gcs_input_bucket}
+              onChange={handleStringChange('gcs_input_bucket')}
+              placeholder="postergen-input"
+              required
             />
           </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Conference Logo</label>
-              <FileUpload
-                label="Logo"
-                accept="image/*"
-                selectedFile={files.logo_file}
-                onFileSelect={(file) => handleFileChange('logo_file', file)}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label>Affiliation Logo</label>
-              <FileUpload
-                label="Affiliation Logo"
-                accept="image/*"
-                selectedFile={files.aff_logo_file}
-                onFileSelect={(file) => handleFileChange('aff_logo_file', file)}
-              />
-            </div>
+          <div className="form-group">
+            <label htmlFor="pdf_path">PDF path in input bucket *</label>
+            <input
+              id="pdf_path"
+              type="text"
+              value={form.pdf_path}
+              onChange={handleStringChange('pdf_path')}
+              placeholder="your-paper-folder/paper.pdf"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="gcs_output_bucket">Output bucket *</label>
+            <input
+              id="gcs_output_bucket"
+              type="text"
+              value={form.gcs_output_bucket}
+              onChange={handleStringChange('gcs_output_bucket')}
+              placeholder="postergen-output"
+              required
+            />
           </div>
         </div>
 
         <div className="form-section">
-          <h3 className="section-title">🤖 Model Configuration</h3>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label>Text Model</label>
-              <select
-                value={config.text_model}
-                onChange={(e) => handleConfigChange('text_model', e.target.value)}
-              >
-                {availableModels.map(model => (
-                  <option key={model} value={model}>{model}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="form-group">
-              <label>Vision Model</label>
-              <select
-                value={config.vision_model}
-                onChange={(e) => handleConfigChange('vision_model', e.target.value)}
-              >
-                {availableModels.map(model => (
-                  <option key={model} value={model}>{model}</option>
-                ))}
-              </select>
-            </div>
+          <h3 className="section-title">🏷️ Optional Logos</h3>
+          <div className="form-group">
+            <label htmlFor="logo">Conference logo (path in input bucket)</label>
+            <input
+              id="logo"
+              type="text"
+              value={form.logo}
+              onChange={handleStringChange('logo')}
+              placeholder="your-paper-folder/logo.png"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="aff_logo">Affiliation logo (path in input bucket)</label>
+            <input
+              id="aff_logo"
+              type="text"
+              value={form.aff_logo}
+              onChange={handleStringChange('aff_logo')}
+              placeholder="your-paper-folder/affiliation.png"
+            />
           </div>
         </div>
 
         <div className="form-section">
-          <h3 className="section-title">📐 Poster Dimensions</h3>
-          
+          <h3 className="section-title">📐 Poster Settings</h3>
           <div className="form-row">
             <div className="form-group">
-              <label>Width (inches)</label>
+              <label htmlFor="width">Width (inches)</label>
               <input
-                type="number"
-                min="20"
-                max="100"
-                step="0.1"
-                value={config.poster_width}
-                onChange={(e) => handleConfigChange('poster_width', parseFloat(e.target.value) || 54)}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label>Height (inches)</label>
-              <input
+                id="width"
                 type="number"
                 min="10"
-                max="60"
+                max="120"
                 step="0.1"
-                value={config.poster_height}
-                onChange={(e) => handleConfigChange('poster_height', parseFloat(e.target.value) || 36)}
+                value={form.width}
+                onChange={handleNumberChange('width')}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="height">Height (inches)</label>
+              <input
+                id="height"
+                type="number"
+                min="10"
+                max="120"
+                step="0.1"
+                value={form.height}
+                onChange={handleNumberChange('height')}
               />
             </div>
           </div>
-          
+          <div className="form-group">
+            <label>Aspect ratio</label>
+            <div
+              style={{
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: `1px solid ${isRatioValid ? '#d1d5db' : '#f97316'}`,
+                backgroundColor: isRatioValid ? '#f9fafb' : '#fff7ed',
+                color: isRatioValid ? '#374151' : '#b45309',
+              }}
+            >
+              {posterRatioDisplay}{' '}
+              {isRatioValid ? '(within recommended range)' : '(needs adjustment)'}
+            </div>
+          </div>
+          <div className="form-group">
+            <label htmlFor="output_path">Output filename</label>
+            <input
+              id="output_path"
+              type="text"
+              value={form.output_path}
+              onChange={handleStringChange('output_path')}
+              placeholder="poster.pptx"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="url">Poster URL (optional QR link)</label>
+            <input
+              id="url"
+              type="text"
+              value={form.url}
+              onChange={handleStringChange('url')}
+              placeholder="https://example.com"
+            />
+          </div>
         </div>
 
-        <button
-          type="submit"
-          className="button"
-          disabled={!canSubmit}
-        >
-          {isSubmitting ? 'Generating Poster...' : 'Generate Poster'}
-        </button>
+        <div className="form-section">
+          <button
+            type="button"
+            className="button"
+            style={{ marginBottom: '16px', backgroundColor: '#4b5563' }}
+            onClick={() => setShowAdvanced((prev: boolean) => !prev)}
+          >
+            {showAdvanced ? 'Hide advanced model settings' : 'Show advanced model settings'}
+          </button>
+
+          {showAdvanced && (
+            <div
+              className="form-section"
+              style={{ border: '1px dashed #d1d5db', borderRadius: '8px', padding: '16px' }}
+            >
+              <h4 className="section-title" style={{ fontSize: '1.1rem' }}>
+                Advanced
+              </h4>
+              <div className="form-group">
+                <label htmlFor="text_model">Text model</label>
+                <input
+                  id="text_model"
+                  type="text"
+                  value={form.text_model}
+                  onChange={handleStringChange('text_model')}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="multimodal_model">Multimodal model</label>
+                <input
+                  id="multimodal_model"
+                  type="text"
+                  value={form.multimodal_model}
+                  onChange={handleStringChange('multimodal_model')}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="image_model">Image model</label>
+                <input
+                  id="image_model"
+                  type="text"
+                  value={form.image_model}
+                  onChange={handleStringChange('image_model')}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="fast_llm_model">Fast LLM model</label>
+                <input
+                  id="fast_llm_model"
+                  type="text"
+                  value={form.fast_llm_model}
+                  onChange={handleStringChange('fast_llm_model')}
+                />
+              </div>
+              <div className="form-row">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={form.fast_search}
+                    onChange={handleCheckboxChange('fast_search')}
+                  />
+                  Enable fast search
+                </label>
+              </div>
+              <div className="form-row">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={form.debug_mode}
+                    onChange={handleCheckboxChange('debug_mode')}
+                  />
+                  Enable debug mode
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="form-section" style={{ display: 'flex', gap: '12px' }}>
+          <button type="submit" className="button" disabled={isSubmitting}>
+            {isSubmitting ? 'Generating poster...' : 'Generate poster'}
+          </button>
+          <button
+            type="button"
+            className="button"
+            style={{ backgroundColor: '#6b7280' }}
+            onClick={resetForm}
+            disabled={isSubmitting}
+          >
+            Reset form
+          </button>
+        </div>
 
         {error && (
-          <div className="error-message">
+          <div className="error-message" style={{ marginTop: '16px', color: '#b91c1c' }}>
             {error}
           </div>
         )}
 
-        {currentJob && currentJob.status !== 'failed' && (
-          <ProgressBar
-            message={currentJob.message}
-            logs={logs}
-            isActive={currentJob.status === 'processing' || currentJob.status === 'pending'}
-          />
-        )}
-
-        {currentJob && currentJob.status === 'completed' && (
-          <div className="download-section">
-            <div className="success-message">
-              Poster generation completed successfully!
+        {result && (
+          <div
+            className="success-message"
+            style={{
+              marginTop: '16px',
+              backgroundColor: '#ecfdf5',
+              border: '1px solid #34d399',
+              borderRadius: '8px',
+              padding: '16px',
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: '8px', color: '#047857' }}>
+              Poster generated successfully!
             </div>
-            <a
-              href={apiService.getDownloadUrl(currentJob.job_id)}
-              className="download-button"
-              download
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+                flexWrap: 'wrap',
+              }}
             >
-              Download Poster Files
-            </a>
+              <span>{result.output_path}</span>
+              <button
+                type="button"
+                className="button"
+                style={{ width: 'auto', padding: '8px 16px' }}
+                onClick={handleCopyOutputPath}
+              >
+                {copyStatus === 'copied'
+                  ? 'Copied!'
+                  : copyStatus === 'error'
+                  ? 'Copy failed'
+                  : 'Copy path'}
+              </button>
+            </div>
           </div>
         )}
       </form>
 
       <div className="preview-wrapper">
         <div className="preview-section">
-          <h3 className="section-title">📄 Meta Files</h3>
-          <div className="json-viewer">
-            {Object.keys(jsonFiles).length > 0 ? (
-              Object.entries(jsonFiles).map(([filename, content]) => (
-                <div key={filename} className="json-file">
-                  <div
-                    className="json-file-header"
-                    onClick={() => toggleFileExpansion(filename)}
-                  >
-                    <span>{filename}</span>
-                    <div>
-                      <button
-                        className="copy-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyToClipboard(JSON.stringify(content, null, 2));
-                        }}
-                      >
-                        Copy
-                      </button>
-                      <span style={{ marginLeft: '8px' }}>
-                        {expandedFiles.has(filename) ? '−' : '+'}
-                      </span>
-                    </div>
-                  </div>
-                  {expandedFiles.has(filename) && (
-                    <div className="json-content">
-                      <pre>{JSON.stringify(content, null, 2)}</pre>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="empty-state">
-                {currentJob?.status === 'completed' 
-                  ? 'No files available'
-                  : 'JSON files will appear after generation'
-                }
-              </div>
-            )}
-          </div>
+          <h3 className="section-title">ℹ️ Tips</h3>
+          <ul style={{ paddingLeft: '20px', color: '#4b5563', fontSize: '0.95rem' }}>
+            <li style={{ marginBottom: '8px' }}>
+              Ensure the service account running the frontend has read/write access to the specified buckets.
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Poster generation can take several minutes; keep the browser tab open until the response returns.
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Use separate folders per poster in the output bucket to keep assets organized.
+            </li>
+            <li>Advanced settings mirror the FastAPI defaults—you can leave them as-is unless you need to experiment.</li>
+          </ul>
         </div>
-        
+
         <div className="section-divider"></div>
-        
+
         <div className="preview-section">
-          <h3 className="section-title">🖼️ Poster Preview</h3>
-          <div className="preview-content">
-            {currentJob?.status === 'completed' && getPosterImageUrl() ? (
-              <div className="preview-container">
-                <img
-                  src={getPosterImageUrl()!}
-                  alt="Generated Poster"
-                  className="poster-preview"
-                />
-              </div>
-            ) : (
-              <div className="empty-state">
-                {currentJob?.status === 'processing' || currentJob?.status === 'pending' 
-                  ? 'Preview will appear when generation is complete...'
-                  : 'Upload files and generate a poster to see preview'
-                }
-              </div>
-            )}
+          <h3 className="section-title">🧪 Request summary</h3>
+          <div className="json-content" style={{ maxHeight: 'none' }}>
+            <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {JSON.stringify(
+                {
+                  ...form,
+                  width: `${form.width}"`,
+                  height: `${form.height}"`,
+                  poster_ratio: posterRatioDisplay,
+                },
+                null,
+                2,
+              )}
+            </pre>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default App;
